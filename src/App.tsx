@@ -1,5 +1,5 @@
 import "./App.css";
-
+import { exportCSV } from "../mylib/exportcsv";
 //1:実際の入力欄の食材リストはdata.tsから表示するだけ。
 import { ingredients } from "../data/ingredients";
 
@@ -21,11 +21,27 @@ export default function App() {
       intake: number;
     }[]
   >([]);
+
+  //入力した数値の食材のIDと数値自体を保存する変数
+  const [inputIngInfo, setinputIngInfo] = useState<
+    {
+      id: number;
+      gram: number;
+    }[]
+  >([{ id: 0, gram: 0 }]);
+
   const selectIngrNameStyle = "font-bold text-black-600";
   const initIngrNameStyle = "font-bold text-gray-300";
 
   const subtitleSpaceStyle = "w-fit bg-gray-100";
   const priceStyle = "p-12 text-4xl text-yellow-700 bg-gray-100";
+
+  function calcAndSetData(setData: { id: number; gram: number }) {
+    const { nutInfo, sumPrice } = myCalculate(setData);
+    setIntakeNuList([...nutInfo]);
+
+    setnewprice(sumPrice);
+  }
 
   return (
     <div className="flex flex-col flex-wrap">
@@ -63,9 +79,35 @@ export default function App() {
                     id: id,
                     gram: gram,
                   };
-                  const { nutInfo, sumPrice } = myCalculate(setData);
-                  setIntakeNuList([...nutInfo]);
-                  setnewprice(sumPrice);
+                  // console.log("入力された値：", setData);
+
+                  //csvを読み込むときもここで。
+                  setinputIngInfo((prevList) => {
+                    // 1. まず、指定された id がすでに配列内にあるかチェックする
+                    const isExist = prevList?.some(
+                      (item) => item.id === setData.id,
+                    );
+
+                    if (isExist) {
+                      console.log("存");
+                      // map を使って特定の要素だけを更新した「新しい配列」を返す
+                      return prevList?.map((item) =>
+                        item.id === setData.id
+                          ? { ...item, gram: setData.gram }
+                          : item,
+                      );
+                    } else {
+                      console.log("新しく追加する1");
+                      // スプレッド構文で、新しくオブジェクトを追加した「新しい配列」を返す
+                      return [
+                        ...prevList,
+                        { id: setData.id, gram: setData.gram },
+                      ];
+                    }
+                  });
+
+                  calcAndSetData(setData);
+                  //console.log(inputIngInfo);
                 }}
               />
               <p>g</p>
@@ -116,6 +158,23 @@ export default function App() {
           </div>
         ))}
       </div>
+      <button
+        onClick={() => {
+          exportCSV(inputIngInfo);
+        }}
+      >
+        csvで保存
+      </button>
+      <button
+        onClick={() => {
+          //ここで読み込んで{食材id,摂取gram}形式に変換する。
+          for (let i = 0; i < inputIngInfo.length; i++) {
+            calcAndSetData(inputIngInfo[i]);
+          }
+        }}
+      >
+        csvを読み込む
+      </button>
     </div>
   );
 }

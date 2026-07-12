@@ -2,7 +2,7 @@
 import { ingredients } from "../data/ingredients";
 
 //それぞれの食材を何グラムとったかを計算するために一時保存する辞書
-let tempIntakeIngrDict = { 0: "" };
+let tempIntakeIngrDict: { [key: number]: string } = { 0: "" };
 
 //栄養素を何グラムとったのか、それぞれの合計値や基本情報を保存する辞書
 let nutInfo = [
@@ -179,7 +179,7 @@ export function myCalculate(data: { id: number; gram: any }) {
   const id = data.id as keyof typeof tempIntakeIngrDict;
   tempIntakeIngrDict[id] = data.gram;
   //非効率だが、計算を実行するたびにすべてを計算しなおす
-
+  //////////tempIntakeIngrDict[3] = "50";
   //合計値段を初期化
   let sumPrice: number = 0;
   //栄養素の合計を初期化
